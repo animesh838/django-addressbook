@@ -19,4 +19,5 @@ urlpatterns = [
     path('api/contacts/create/', views.api_contact_create, name='api_contact_create'),
     path('api/contacts/<int:pk>/update/', views.api_contact_update, name='api_contact_update'),
     path('api/contacts/<int:pk>/delete/', views.api_contact_delete, name='api_contact_delete'),
+    path('api/contacts/search/', views.api_contact_detail, name='api_contact_search'),
 ] 

@@ -12,7 +12,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
-import dj_database_url
+
+# Try to import dj_database_url, but don't fail if it's not available locally
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,7 +63,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -66,6 +70,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Add whitenoise middleware if available (for production)
+try:
+    import whitenoise
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+except ImportError:
+    pass
 
 ROOT_URLCONF = 'addressbook_project.urls'
 
@@ -101,12 +112,15 @@ DATABASES = {
 import logging
 logger = logging.getLogger(__name__)
 
-db_from_env = dj_database_url.config(conn_max_age=600, default='')
-if db_from_env:
-    DATABASES['default'].update(db_from_env)
-    logger.info("Using PostgreSQL database from DATABASE_URL")
+if dj_database_url:
+    db_from_env = dj_database_url.config(conn_max_age=600, default='')
+    if db_from_env:
+        DATABASES['default'].update(db_from_env)
+        logger.info("Using PostgreSQL database from DATABASE_URL")
+    else:
+        logger.info("Using SQLite database (no DATABASE_URL set)")
 else:
-    logger.info("Using SQLite database (no DATABASE_URL set)")
+    logger.info("Using SQLite database (dj-database-url not available)")
 
 
 # Password validation
@@ -145,7 +159,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Use whitenoise storage if available (for production)
+try:
+    import whitenoise
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+except ImportError:
+    pass
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

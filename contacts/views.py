@@ -165,3 +165,34 @@ def api_contact_delete(request, pk):
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def api_contact_detail(request):
+    """API endpoint to search contacts by first name"""
+    name = request.GET.get('name', '')
+    
+    if not name:
+        return JsonResponse({'contacts': []})
+    
+    # Search for contacts with first_name containing the search term (case-insensitive)
+    contacts = Contact.objects.filter(first_name__icontains=name)
+    
+    data = []
+    for contact in contacts:
+        data.append({
+            'id': contact.id,
+            'first_name': contact.first_name,
+            'last_name': contact.last_name,
+            'email': contact.email,
+            'phone': contact.phone,
+            'address': contact.address,
+            'city': contact.city,
+            'state': contact.state,
+            'zip_code': contact.zip_code,
+            'country': contact.country,
+            'notes': contact.notes,
+        })
+    
+    return JsonResponse({'contacts': data})
+   

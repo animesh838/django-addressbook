@@ -14,6 +14,21 @@
     </div>
 </div>
 
+<!-- Search Bar -->
+<div class="row mb-4">
+    <div class="col-md-6 mx-auto">
+        <div class="input-group">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search contacts by first name..." aria-label="Search contacts">
+            <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn">
+                <i class="fas fa-times"></i> Clear
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="row" id="contacts-container">
     {% for contact in contacts %}
     <div class="col-md-6 col-lg-4 mb-4">
@@ -294,8 +309,122 @@ function showAddContactModal() {
     modal.show();
 }
 
+// Search functionality
+function searchContacts() {
+    const searchTerm = document.getElementById('searchInput').value.trim();
+    
+    if (!searchTerm) {
+        // If search is empty, show all contacts
+        loadAllContacts();
+        return;
+    }
+    
+    // Show loading state
+    const container = document.getElementById('contacts-container');
+    container.innerHTML = '<div class="col-12 text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Searching...</p></div>';
+    
+    // Make API call to search contacts
+    fetch(`{% url 'contacts:api_contact_search' %}?name=${encodeURIComponent(searchTerm)}`)
+        .then(response => response.json())
+        .then(data => {
+            displaySearchResults(data.contacts, searchTerm);
+        })
+        .catch(error => {
+            console.error('Error searching contacts:', error);
+            container.innerHTML = '<div class="col-12 text-center text-danger"><p>Error searching contacts.</p></div>';
+        });
+}
+
+function displaySearchResults(contacts, searchTerm) {
+    const container = document.getElementById('contacts-container');
+    
+    if (contacts.length === 0) {
+        container.innerHTML = `
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h3 class="text-muted">No contacts found</h3>
+                    <p class="text-muted">No contacts found matching "${searchTerm}"</p>
+                    <button class="btn btn-primary" onclick="loadAllContacts()">
+                        <i class="fas fa-list"></i> Show All Contacts
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    contacts.forEach(contact => {
+        html += `
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card contact-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-user text-primary"></i>
+                                <span class="search-highlight">${contact.first_name}</span> ${contact.last_name}
+                            </h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'contacts:contact_detail' 0 %}".replace('0', contact.id)">
+                                        <i class="fas fa-eye"></i> View
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'contacts:contact_update' 0 %}".replace('0', contact.id)">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{% url 'contacts:contact_delete' 0 %}".replace('0', contact.id)">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        ${contact.email ? `<p class="card-text mb-1"><i class="fas fa-envelope text-muted"></i> <a href="mailto:${contact.email}">${contact.email}</a></p>` : ''}
+                        ${contact.phone ? `<p class="card-text mb-1"><i class="fas fa-phone text-muted"></i> <a href="tel:${contact.phone}">${contact.phone}</a></p>` : ''}
+                        ${contact.city || contact.state ? `<p class="card-text mb-1"><i class="fas fa-map-marker-alt text-muted"></i> ${contact.city || ''}${contact.city && contact.state ? ', ' : ''}${contact.state || ''}</p>` : ''}
+                        ${contact.notes ? `<p class="card-text text-muted small"><i class="fas fa-sticky-note"></i> ${contact.notes.substring(0, 50)}${contact.notes.length > 50 ? '...' : ''}</p>` : ''}
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> Updated: ${new Date(contact.updated_at).toLocaleDateString()}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function loadAllContacts() {
+    // Reload the page to show all contacts
+    window.location.reload();
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    loadAllContacts();
+}
+
 // Show API section when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners for search
+    document.getElementById('searchBtn').addEventListener('click', searchContacts);
+    document.getElementById('clearSearchBtn').addEventListener('click', clearSearch);
+    
+    // Add search on Enter key
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchContacts();
+        }
+    });
+    
     // Add a toggle button to show API version
     const apiToggle = document.createElement('button');
     apiToggle.className = 'btn btn-outline-info mt-3';
