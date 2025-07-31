@@ -1,0 +1,310 @@
+{% extends 'contacts/base.html' %}
+
+{% block title %}All Contacts - Address Book{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-users"></i> All Contacts</h1>
+            <a href="{% url 'contacts:contact_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Contact
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row" id="contacts-container">
+    {% for contact in contacts %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card contact-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user text-primary"></i>
+                        {{ contact.first_name }} {{ contact.last_name }}
+                    </h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'contacts:contact_detail' contact.pk %}">
+                                <i class="fas fa-eye"></i> View
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'contacts:contact_update' contact.pk %}">
+                                <i class="fas fa-edit"></i> Edit
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'contacts:contact_delete' contact.pk %}">
+                                <i class="fas fa-trash"></i> Delete
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                {% if contact.email %}
+                <p class="card-text mb-1">
+                    <i class="fas fa-envelope text-muted"></i>
+                    <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+                </p>
+                {% endif %}
+                
+                {% if contact.phone %}
+                <p class="card-text mb-1">
+                    <i class="fas fa-phone text-muted"></i>
+                    <a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>
+                </p>
+                {% endif %}
+                
+                {% if contact.city or contact.state %}
+                <p class="card-text mb-1">
+                    <i class="fas fa-map-marker-alt text-muted"></i>
+                    {% if contact.city %}{{ contact.city }}{% endif %}{% if contact.city and contact.state %}, {% endif %}{% if contact.state %}{{ contact.state }}{% endif %}
+                </p>
+                {% endif %}
+                
+                {% if contact.notes %}
+                <p class="card-text text-muted small">
+                    <i class="fas fa-sticky-note"></i>
+                    {{ contact.notes|truncatewords:10 }}
+                </p>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+                <small class="text-muted">
+                    <i class="fas fa-clock"></i> Updated: {{ contact.updated_at|date:"M d, Y" }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-address-book fa-3x text-muted mb-3"></i>
+            <h3 class="text-muted">No contacts found</h3>
+            <p class="text-muted">Start by adding your first contact!</p>
+            <a href="{% url 'contacts:contact_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Your First Contact
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- API Version for AJAX -->
+<div class="row mt-4" id="api-contacts-container" style="display: none;">
+    <div class="col-12">
+        <h3>API Version (AJAX)</h3>
+        <div class="mb-3">
+            <button class="btn btn-success" onclick="loadContactsAPI()">
+                <i class="fas fa-sync"></i> Load Contacts via API
+            </button>
+            <button class="btn btn-info" onclick="showAddContactModal()">
+                <i class="fas fa-plus"></i> Add Contact via API
+            </button>
+        </div>
+        <div id="api-contacts-list"></div>
+    </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div class="modal fade" id="addContactModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Contact</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addContactForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="first_name" class="form-label">First Name *</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="last_name" class="form-label">Last Name *</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" name="city">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="state" class="form-label">State</label>
+                                <input type="text" class="form-control" id="state" name="state">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="zip_code" class="form-label">ZIP Code</label>
+                                <input type="text" class="form-control" id="zip_code" name="zip_code">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="country" class="form-label">Country</label>
+                        <input type="text" class="form-control" id="country" name="country">
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addContactAPI()">Add Contact</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// API Functions
+function loadContactsAPI() {
+    fetch('{% url "contacts:api_contact_list" %}')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('api-contacts-list');
+            container.innerHTML = '';
+            
+            if (data.contacts.length === 0) {
+                container.innerHTML = '<p class="text-muted">No contacts found via API.</p>';
+                return;
+            }
+            
+            data.contacts.forEach(contact => {
+                const contactDiv = document.createElement('div');
+                contactDiv.className = 'card mb-3';
+                contactDiv.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="card-title">${contact.first_name} ${contact.last_name}</h5>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editContactAPI(${contact.id})">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteContactAPI(${contact.id})">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        ${contact.email ? `<p><i class="fas fa-envelope"></i> ${contact.email}</p>` : ''}
+                        ${contact.phone ? `<p><i class="fas fa-phone"></i> ${contact.phone}</p>` : ''}
+                        ${contact.city ? `<p><i class="fas fa-map-marker-alt"></i> ${contact.city}${contact.state ? ', ' + contact.state : ''}</p>` : ''}
+                    </div>
+                `;
+                container.appendChild(contactDiv);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading contacts:', error);
+            document.getElementById('api-contacts-list').innerHTML = '<p class="text-danger">Error loading contacts.</p>';
+        });
+}
+
+function addContactAPI() {
+    const form = document.getElementById('addContactForm');
+    const formData = new FormData(form);
+    const data = {};
+    
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
+    
+    fetch('{% url "contacts:api_contact_create" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal and reload
+            bootstrap.Modal.getInstance(document.getElementById('addContactModal')).hide();
+            form.reset();
+            loadContactsAPI();
+            alert('Contact added successfully!');
+        } else {
+            alert('Error adding contact: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error adding contact:', error);
+        alert('Error adding contact.');
+    });
+}
+
+function deleteContactAPI(contactId) {
+    if (confirm('Are you sure you want to delete this contact?')) {
+        fetch(`{% url "contacts:api_contact_delete" 0 %}`.replace('0', contactId), {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadContactsAPI();
+                alert('Contact deleted successfully!');
+            } else {
+                alert('Error deleting contact: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting contact:', error);
+            alert('Error deleting contact.');
+        });
+    }
+}
+
+function showAddContactModal() {
+    const modal = new bootstrap.Modal(document.getElementById('addContactModal'));
+    modal.show();
+}
+
+// Show API section when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Add a toggle button to show API version
+    const apiToggle = document.createElement('button');
+    apiToggle.className = 'btn btn-outline-info mt-3';
+    apiToggle.innerHTML = '<i class="fas fa-code"></i> Show API Version';
+    apiToggle.onclick = function() {
+        document.getElementById('api-contacts-container').style.display = 'block';
+        this.style.display = 'none';
+    };
+    document.querySelector('.d-flex.justify-content-between').appendChild(apiToggle);
+});
+</script>
+{% endblock %} 

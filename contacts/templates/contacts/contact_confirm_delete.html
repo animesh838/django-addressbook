@@ -1,0 +1,72 @@
+{% extends 'contacts/base.html' %}
+
+{% block title %}Delete {{ contact.first_name }} {{ contact.last_name }} - Address Book{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-trash"></i> Delete Contact</h1>
+            <a href="{% url 'contacts:contact_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirm Deletion</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-warning"></i> Warning</h6>
+                    <p class="mb-0">This action cannot be undone. The contact will be permanently deleted.</p>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-user"></i> 
+                            {{ contact.first_name }} {{ contact.last_name }}
+                        </h6>
+                        
+                        {% if contact.email %}
+                        <p class="mb-1">
+                            <i class="fas fa-envelope text-muted"></i> {{ contact.email }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if contact.phone %}
+                        <p class="mb-1">
+                            <i class="fas fa-phone text-muted"></i> {{ contact.phone }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if contact.city or contact.state %}
+                        <p class="mb-1">
+                            <i class="fas fa-map-marker-alt text-muted"></i>
+                            {% if contact.city %}{{ contact.city }}{% endif %}{% if contact.city and contact.state %}, {% endif %}{% if contact.state %}{{ contact.state }}{% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'contacts:contact_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete Contact
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
