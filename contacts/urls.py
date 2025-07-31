@@ -4,6 +4,9 @@ from . import views
 app_name = 'contacts'
 
 urlpatterns = [
+    # Health check
+    path('health/', views.health_check, name='health_check'),
+    
     # Regular views
     path('', views.contact_list, name='contact_list'),
     path('create/', views.contact_create, name='contact_create'),

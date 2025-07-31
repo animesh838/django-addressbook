@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
@@ -7,6 +7,10 @@ from .models import Contact
 from .forms import ContactForm
 
 # Create your views here.
+
+def health_check(request):
+    """Simple health check endpoint"""
+    return HttpResponse("OK", content_type="text/plain")
 
 def contact_list(request):
     """Display all contacts"""

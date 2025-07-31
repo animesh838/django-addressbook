@@ -84,8 +84,15 @@ DATABASES = {
 }
 
 # Update database configuration from $DATABASE_URL.
-db_from_env = dj_database_url.config(conn_max_age=600)
-DATABASES['default'].update(db_from_env)
+import logging
+logger = logging.getLogger(__name__)
+
+db_from_env = dj_database_url.config(conn_max_age=600, default='')
+if db_from_env:
+    DATABASES['default'].update(db_from_env)
+    logger.info("Using PostgreSQL database from DATABASE_URL")
+else:
+    logger.info("Using SQLite database (no DATABASE_URL set)")
 
 
 # Password validation
