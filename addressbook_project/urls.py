@@ -16,11 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
 from django.http import HttpResponse
-
-def home(request):
-    return redirect('contacts:contact_list')
 
 def health_check(request):
     """Root health check endpoint"""
@@ -29,6 +25,5 @@ def health_check(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('health/', health_check, name='health_check'),
-    path('', home, name='home'),
-    path('contacts/', include('contacts.urls')),
+    path('', include('contacts.urls')),
 ]

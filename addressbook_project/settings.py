@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'contacts',
 ]
 
+# Using Django's built-in User model
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

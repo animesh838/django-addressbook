@@ -35,14 +35,22 @@
             <a class="navbar-brand" href="{% url 'contacts:contact_list' %}">
                 <i class="fas fa-address-book"></i> Address Book
             </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'contacts:contact_list' %}">
-                    <i class="fas fa-list"></i> All Contacts
-                </a>
-                <a class="nav-link" href="{% url 'contacts:contact_create' %}">
-                    <i class="fas fa-plus"></i> Add Contact
-                </a>
-            </div>
+            {% if user.is_authenticated %}
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text me-3">
+                        <i class="fas fa-user"></i> {{ user.username }}
+                    </span>
+                    <a class="nav-link" href="{% url 'contacts:contact_list' %}">
+                        <i class="fas fa-list"></i> My Contacts
+                    </a>
+                    <a class="nav-link" href="{% url 'contacts:contact_create' %}">
+                        <i class="fas fa-plus"></i> Add Contact
+                    </a>
+                    <a class="nav-link" href="{% url 'contacts:logout' %}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </nav>
 
