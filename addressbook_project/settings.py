@@ -37,9 +37,13 @@ ALLOWED_HOSTS = ['*']
 # CSRF settings for Railway deployment
 CSRF_TRUSTED_ORIGINS = [
     'https://myfirstproject-production-f1f4.up.railway.app',
+    'https://myaddressbook-production.up.railway.app',  # New Railway domain
     'https://*.up.railway.app',
+    'https://yourdomain.com',  # Add your custom domain here
+    'https://www.yourdomain.com',  # Add www subdomain if needed
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'http://myaddressbook.local:8000',  # Local custom domain
 ]
 
 # Security settings for production
