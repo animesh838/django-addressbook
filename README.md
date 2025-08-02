@@ -53,7 +53,7 @@ A modern, responsive Django web application for managing contacts with full CRUD
    ```
 
 7. **Access the application**:
-   - Main application: http://127.0.0.1:8000/
+   - Main application: https://myfirstproject-production-f1f4.up.railway.app/
    - Admin interface: http://127.0.0.1:8000/admin/
 
 ## Usage
